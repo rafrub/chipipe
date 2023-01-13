@@ -1,0 +1,15 @@
+installation_directory: /home/bag2/tarea2
+working_directory: /home/bag2/tarea2
+experiment_name: prr5_test 
+number_replicas: 2
+path_genome: /home/socram/bag_psi/chip_test/genome.fa
+path_annotation: /home/socram/bag_psi/chip_test/annotation.gtf
+path_sample_chip_1: /home/socram/bag_psi/chip_test/sample_chip_1.fq.gz
+path_sample_input_1: /home/socram/bag_psi/chip_test/sample_input_1.fq.gz
+path_sample_chip_2: /home/socram/bag_psi/chip_test/sample_chip_2.fq.gz
+path_sample_input_2: /home/socram/bag_psi/chip_test/sample_input_2.fq.gz
+universe_chromosomes: 1
+type_of_peak: 1
+single_or_paired: 1
+tss_upstream: 1000
+tss_downstream: 1000

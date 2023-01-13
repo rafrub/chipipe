@@ -1,0 +1,78 @@
+#!/bin/bash
+#SBATCH --export=ALL
+
+WD=$1
+EXP=$2
+PEAK=$3
+NUMREPLICAS=$4
+INSDIR=$5
+CHR=$6
+TSSUP=$7
+TSSDOWN=$8
+GENOME=$9
+
+cd $WD/$EXP
+
+#el problema de tener dos tipos de picos, tenemos que poner un if
+#para que la variable de extensión sea diferente
+
+if [ $PEAK -eq 1 ]
+then
+	EXT=$(echo "narrowPeak")
+#el operador y el paréntesis se pone para cuando se quiere que haga una 
+#operación
+
+elif [ $PEAK -eq 2 ]
+then
+	EXT=$(echo "broadPeak")
+fi
+
+#bedtools solo puede hacer la intersección de 2 cosas a la vez, no múltiples
+#cuando es 2 réplicas está bien, hace la intersección, pero puede que
+#tengamos 1 o 3.
+
+#si hay más de dos tenemos que poner un bucle para que haga la 
+#intersección entre los dos primeros, y luego el resultado lo interseque con
+#el siguiente, y así sucesivamente
+
+i=3
+if [ $NUMREPLICAS -eq 1 ]
+then 
+	mv samples/replica_1/replica_results/1_peaks.${EXT} results/merged_2.${EXT}
+
+#para que sepa lo que es la extensión se pone entre llaves y que no 
+#lo confunda con una variable si es que le vamos a poner _1 o _2 detrás
+else
+	bedtools intersect -a samples/replica_1/replica_results/1_peaks.${EXT} -b samples/replica_2/replica_results/2_peaks.${EXT} > results/merged_2.${EXT}
+
+	if [ $NUMREPLICAS -ge 3 ]
+	then
+
+		while [ $i -le $NUMREPLICAS ]
+		do
+			j=$(($i-1))
+			#como es una operación aritmética ponemos 2 paréntesis
+			bedtools intersect -a results/merged_$((j)).${EXT} -b samples/replica_results/$((i))_peaks.${EXT} > results/merged_$((i)).${EXT}
+			#aquí ponemos el merged que es el resultado de haber
+			#intersecado los dos anteriores, para que nos lo 
+			#interseque con el siguiente
+
+			#para evitar errores de que considere una variable completa
+			#metemos entre 2 paréntesis el i y la j para iterar
+			((i++))
+		done
+	fi
+fi
+
+cd results
+i=$(($i-1))
+
+mkdir kegg_images
+
+##The end
+
+Rscript $INSDIR/R_script_chiptube.R merged_$((i)).${EXT} $CHR $TSSUP $TSSDOWN $PEAK
+
+##Homer
+findMotifsGenome.pl merged_$((i)).${EXT} $GENOME . -len 9 -size 100
+
